@@ -1,0 +1,72 @@
+#---------------------------------------------------------------------
+# GitHub Action Workflow Deploys App to AWS ElasticBeanstalk
+#
+# Version      Date       Comment
+# 1.0          2019       Initial Version
+# 2.0          2020       Modified and tested
+#
+# Modified by Dmitrii Nadein
+#---------------------------------------------------------------------
+name: CI-CD-Pipeline-to-AWS-ElasticBeastalk
+env:
+  EB_PACKAGE_S3_BUCKET_NAME : "ENTER BUCKET NAME HERE"
+  EB_APPLICATION_NAME       : "Enter app name here"
+  EB_ENVIRONMENT_NAME       : "ElasticBeanstalk environment name"
+  DEPLOY_PACKAGE_NAME       : "Application_name_${{ github.sha }}.zip"
+  AWS_REGION_NAME           : "For example - us-west-2"
+
+on: 
+  push:
+    branches: 
+      - master
+
+jobs:
+  Integration part:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Git clone our repo
+      uses: actions/checkout@v1
+       
+    - name: Create ZIP deployment package
+      run : zip -r ${{ env.DEPLOY_PACKAGE_NAME }} ./ -x *.git*
+      
+    - name: Configure AWS user Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id    :  ${{ secrets.MY_AWS_ACCESS_KEY }}
+        aws-secret-access-key:  ${{ secrets.MY_AWS_SECRET_KEY }}
+        aws-region           :  ${{ env.AWS_REGION_NAME }}
+        
+    - name: Copy Deployment package to S3 bucket
+      run : aws s3 cp ${{ env.DEPLOY_PACKAGE_NAME }}  s3://${{ env.EB_PACKAGE_S3_BUCKET_NAME }}/
+    
+    - name: Print Happy Message for CI finish
+      run : echo "CI Pipeline part Finished successfully!"
+
+
+  Deployment part:
+    runs-on: ubuntu-latest
+    needs: [Integration part]
+
+    steps:
+    - name: Configure AWS user Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id    :  ${{ secrets.MY_AWS_ACCESS_KEY }}
+        aws-secret-access-key:  ${{ secrets.MY_AWS_SECRET_KEY }}
+        aws-region           :  ${{ env.AWS_REGION_NAME }}
+    
+    - name: Create new ElasticBeanstalk Application Version
+      run : |
+        aws elasticbeanstalk create-application-version \
+        --application-name ${{ env.EB_APPLICATION_NAME }} \
+        --source-bundle S3Bucket="${{ env.EB_PACKAGE_S3_BUCKET_NAME }}",S3Key="${{ env.DEPLOY_PACKAGE_NAME }}" \
+        --version-label "Ver-${{ github.sha }}" \
+        --description "CoimmitSHA-${{ github.sha }}"
+       
+    - name: Deploy new ElasticBeanstalk Application Version
+      run : aws elasticbeanstalk update-environment --environment-name ${{ env.EB_ENVIRONMENT_NAME }} --version-label "Ver-${{ github.sha }}"
+      
+    - name: Print Happy Message for CD finish
+      run : echo "CD Pipeline part Finished successfully!"
