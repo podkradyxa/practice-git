@@ -15,7 +15,7 @@ env:
   DEPLOY_PACKAGE_NAME       : "Application_name_${{ github.sha }}.zip"
   AWS_REGION_NAME           : "For example - us-west-2"
 
-on: 
+#on: 
   push:
     branches: 
       - master
