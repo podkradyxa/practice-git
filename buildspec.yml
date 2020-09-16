@@ -1,3 +1,10 @@
+#----------------------------------------------------------------------
+#  AWS CodeBuild "buildspec.yml" file
+#  for building and pushing Docker image to AWS ECR
+#
+#  Made by Dmitrii Nadein dd-mm-2020
+#----------------------------------------------------------------------
+
 version: 0.2
 
 phases:
