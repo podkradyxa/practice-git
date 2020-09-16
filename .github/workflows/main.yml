@@ -1,12 +1,9 @@
 #---------------------------------------------------------------------
 # GitHub Action Workflow Deploys App to AWS ElasticBeanstalk
 #
-# Version      Date       Comment
-# 1.0          2019       Initial Version
-# 2.0          2020       Modified and tested
-#
-# Modified by Dmitrii Nadein
+# Made by Dmitrii Nadein
 #---------------------------------------------------------------------
+
 name: CI-CD-Pipeline-to-AWS-ElasticBeastalk
 env:
   EB_PACKAGE_S3_BUCKET_NAME : "ENTER BUCKET NAME HERE"
@@ -15,10 +12,10 @@ env:
   DEPLOY_PACKAGE_NAME       : "Application_name_${{ github.sha }}.zip"
   AWS_REGION_NAME           : "For example - us-west-2"
 
-#on: 
+on: 
   push:
     branches: 
-      - master
+      #- master
 
 jobs:
   Integration part:
